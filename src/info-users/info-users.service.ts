@@ -99,4 +99,40 @@ export class InfoUsersService {
       where: { id_dto },
     });
   }
+  async getUserInfo(id_user: string) {
+    // Busca o usuário na tabela Users
+    const user = await this.prisma.users.findUnique({
+      where: { id: id_user },
+    });
+
+    if (!user) {
+      throw new BadRequestException(`Usuário com ID '${id_user}' não encontrado.`);
+    }
+
+    // Busca as informações na tabela UsersDTO usando o id_user
+    const userDTO = await this.prisma.usersDTO.findFirst({
+      where: { id_user },
+    });
+
+    if (!userDTO) {
+      throw new BadRequestException(`Informações adicionais do usuário com ID '${id_user}' não encontradas na tabela UsersDTO.`);
+    }
+
+    // Busca as informações na tabela UsersDTO2 usando o id_dto da tabela UsersDTO
+    const userDTO2 = await this.prisma.usersDTO2.findFirst({
+      where: { id_dto1: userDTO.id_dto },
+    });
+
+    if (!userDTO2) {
+      throw new BadRequestException(`Informações adicionais do usuário com ID '${userDTO.id_dto}' não encontradas na tabela UsersDTO2.`);
+    }
+
+    // Retorna todas as informações combinadas
+    return {
+      user,
+      userDTO,
+      userDTO2,
+    };
+  }
 }
+

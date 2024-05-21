@@ -40,5 +40,17 @@ export class InfoUsersController {
   delete(@Param('id_dto') id_dto: string) {
     return this.infoUsersService.delete(id_dto);
   }
+
+  
+  @Get(':id')
+  async getUserInfo(@Param('id') id: string) {
+    try {
+      const userInfo = await this.infoUsersService.getUserInfo(id);
+      return userInfo;
+    } catch (error) {
+      // Trate qualquer erro aqui
+      throw error; // ou retorne uma resposta adequada
+    }
+  }
 }
 

@@ -96,34 +96,57 @@ export class UsersService {
     id: string,
     userData: Partial<Users>,
   ): Promise<{ message: string; user: Users } | null> {
+    // Verificação do ID fornecido
     if (!id) {
       throw new BadRequestException('ID inválido.');
     }
 
+    // Verifica se o usuário existe no banco de dados
     const existingUser = await this.prisma.users.findUnique({
       where: { id },
     });
+
     if (!existingUser) {
-      return null;
+      throw new BadRequestException('Usuário não encontrado.');
     }
 
+    // Impede a alteração do campo CPF
     if ('cpf' in userData) {
       throw new BadRequestException('O CPF não pode ser alterado.');
     }
 
+    // Verifica se o novo email já está em uso por outro usuário
+    if ('email' in userData && userData.email !== existingUser.email) {
+      const emailExists = await this.prisma.users.findUnique({
+        where: { email: userData.email },
+      });
+      if (emailExists) {
+        throw new BadRequestException(`E-mail '${userData.email}' já está cadastrado.`);
+      }
+    }
+
+    // Campos permitidos para atualização
     const allowedFields = ['password', 'email', 'name', 'role'];
     const updatedData: Partial<Users> = {};
+
     for (const key of allowedFields) {
       if (key in userData) {
         updatedData[key] = userData[key];
       }
     }
 
+    // Verifica se há mudanças a serem aplicadas
     const hasChanges = Object.keys(updatedData).length > 0;
     if (!hasChanges) {
       return { message: 'Nenhuma alteração realizada.', user: existingUser };
     }
 
+    // Se a senha estiver sendo atualizada, criptografa a nova senha
+    if (updatedData.password) {
+      updatedData.password = await bcrypt.hash(updatedData.password, 10);
+    }
+
+    // Atualiza o usuário no banco de dados
     const updatedUser = await this.prisma.users.update({
       where: { id },
       data: updatedData,
@@ -131,6 +154,7 @@ export class UsersService {
 
     return { message: 'Usuário atualizado com sucesso.', user: updatedUser };
   }
+
 
   async deleteUser(id: string): Promise<Users | null> {
     if (!id) {
@@ -150,4 +174,5 @@ export class UsersService {
 
     return deletedUser;
   }
+
 }
