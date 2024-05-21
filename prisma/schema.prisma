@@ -27,6 +27,15 @@ model UsersDTO {
   motivation               String
   personal_reference       String      
   personal_valuer          String
+  createdAt                DateTime?   @default(now())
+  updatedAt                DateTime?   @updatedAt
+  user                     Users       @relation(fields: [id_user], references: [id])
+  id_user                  String    
+  userDTO2s        UsersDTO2[]  // Relacionamento um-para-muitos com UsersDTO  
+}
+
+model UsersDTO2 {
+  id_dto2                      String      @id @default(uuid())
   academic_education       String
   academic_status          String   
   interest_area            String
@@ -35,8 +44,6 @@ model UsersDTO {
   support                  String
   createdAt                DateTime?   @default(now())
   updatedAt                DateTime?   @updatedAt
-  user                     Users       @relation(fields: [id_user], references: [id])
-
-
-  id_user                  String      
+  userdto                  UsersDTO    @relation(fields: [id_dto1], references: [id_dto])
+  id_dto1                  String      
 }
