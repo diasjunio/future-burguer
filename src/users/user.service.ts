@@ -58,7 +58,7 @@ export class UsersService {
   }
 
   async findUserById(id: string): Promise<Users | null> {
-    // Verifica se o ID fornecido é válido
+
     if (!id) {
       throw new BadRequestException('ID inválido.');
     }
@@ -75,7 +75,6 @@ export class UsersService {
   }
 
   async findUserByEmail(email: string): Promise<Users | null> {
-    // Verifica se o ID fornecido é válido
     if (!email) {
       throw new BadRequestException('ID inválido.');
     }
@@ -88,7 +87,6 @@ export class UsersService {
       throw new BadRequestException('Usuário não encontrado.');
     }
 
-    // Retorna o usuário encontrado
     return user;
   }
 
@@ -96,12 +94,9 @@ export class UsersService {
     id: string,
     userData: Partial<Users>,
   ): Promise<{ message: string; user: Users } | null> {
-    // Verificação do ID fornecido
     if (!id) {
       throw new BadRequestException('ID inválido.');
     }
-
-    // Verifica se o usuário existe no banco de dados
     const existingUser = await this.prisma.users.findUnique({
       where: { id },
     });
@@ -109,13 +104,9 @@ export class UsersService {
     if (!existingUser) {
       throw new BadRequestException('Usuário não encontrado.');
     }
-
-    // Impede a alteração do campo CPF
     if ('cpf' in userData) {
       throw new BadRequestException('O CPF não pode ser alterado.');
     }
-
-    // Verifica se o novo email já está em uso por outro usuário
     if ('email' in userData && userData.email !== existingUser.email) {
       const emailExists = await this.prisma.users.findUnique({
         where: { email: userData.email },
@@ -125,7 +116,6 @@ export class UsersService {
       }
     }
 
-    // Campos permitidos para atualização
     const allowedFields = ['password', 'email', 'name', 'role'];
     const updatedData: Partial<Users> = {};
 
@@ -135,18 +125,15 @@ export class UsersService {
       }
     }
 
-    // Verifica se há mudanças a serem aplicadas
     const hasChanges = Object.keys(updatedData).length > 0;
     if (!hasChanges) {
       return { message: 'Nenhuma alteração realizada.', user: existingUser };
     }
 
-    // Se a senha estiver sendo atualizada, criptografa a nova senha
     if (updatedData.password) {
       updatedData.password = await bcrypt.hash(updatedData.password, 10);
     }
 
-    // Atualiza o usuário no banco de dados
     const updatedUser = await this.prisma.users.update({
       where: { id },
       data: updatedData,

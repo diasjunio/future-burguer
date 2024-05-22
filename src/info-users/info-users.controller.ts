@@ -32,15 +32,6 @@ export class InfoUsersController {
   async updatePart2(@Param('id_dto2') id_dto2: string, @Body() createInfoUserPart2Dto: CreateInfoUserPart2Dto) {
     return this.infoUsersService.updatePart2(id_dto2, createInfoUserPart2Dto);
   }
-
-
-
-  @Delete(':id_dto') // Endpoint DELETE para excluir o registro associado ao id_user
-  @IsPublic()
-  delete(@Param('id_dto') id_dto: string) {
-    return this.infoUsersService.delete(id_dto);
-  }
-
   
   @Get(':id')
   async getUserInfo(@Param('id') id: string) {
@@ -48,8 +39,7 @@ export class InfoUsersController {
       const userInfo = await this.infoUsersService.getUserInfo(id);
       return userInfo;
     } catch (error) {
-      // Trate qualquer erro aqui
-      throw error; // ou retorne uma resposta adequada
+      throw error;
     }
   }
 }
